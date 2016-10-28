@@ -1,0 +1,16 @@
+{
+  "name": "gtm-tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "forever": "forever -w -d -m 1 index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "forever": "^0.15.2",
+    "nodemon": "^1.10.2"
+  }
+}

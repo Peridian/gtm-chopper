@@ -195,13 +195,24 @@ module.exports = {
 
                     var croppedGTM = container.containerVersion.tag.filter((ee, ii, aa) => {
 
+
+
                         var pass =
                             (
                                 ii >= e.tags[0]
                                 &&
                                 ii <= e.tags[1]
+                                /*
                                 &&
                                 ee.name != 'Script - Checkout Custom'
+                                                                    
+                                                                    &&
+                                                                    excludeTags.length == 0 ? true : !(
+                                                                        ii >= excludeTags.split(',')[0]
+                                                                        &&
+                                                                        ii <= excludeTags.split(',')[1]
+                                                                    )
+                                */
                             )
 
                         return pass
@@ -212,6 +223,7 @@ module.exports = {
                     containers[i].push(customCheckout);
 
                 });
+
                 return containers;
             }
             , createRanges = (max, levels) => {
@@ -258,11 +270,7 @@ module.exports = {
             }
             ;
 
-        if (excludeTags.length > -1) {
-            if (excludeTags.indexOf(',') != -1)
-                if (excludeTags.indexOf(',') != -1)
-                    throw 'Pelse'
-        } else execute('CC - Importable');
+        execute('CC - Importable');
 
     }
 }
