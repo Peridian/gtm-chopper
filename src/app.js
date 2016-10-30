@@ -47,16 +47,15 @@ module.exports = {
                 var
                     range = ''
                     , fullContainerName = []
+                    , fullContainerNameSplit = []
                     , newFullContainer = []
-                    ;
-
-                var
-                    logList = []
+                    , logList = []
                     , logSplit = []
                     ;
 
                 allGTMs.forEach((e, i, a) => {
                     fullContainerName = []
+                    fullContainerNameSplit = []
 
                     range = ranges[i].tags[0] + '_' + ranges[i].tags[1]
 
@@ -67,6 +66,11 @@ module.exports = {
                     fullContainerName = fullContainerName.join(' - ')
                     fullContainerName += '.json'
 
+                    fullContainerNameSplit.push(i + 1)
+                    fullContainerNameSplit.push(ranges[i].level)
+                    fullContainerNameSplit.push(range)
+                    fullContainerNameSplit = fullContainerNameSplit.join(' - ')
+
                     newFullContainer = JSON.parse(JSON.stringify(container))
                     newFullContainer.containerVersion.tag = e
 
@@ -75,8 +79,18 @@ module.exports = {
                     console.log(newFullContainer.containerVersion.variable.length, 'variables')
                     console.log(newFullContainer.containerVersion.trigger.length, 'triggers')
 
-                    logList.push('----- ' + fullContainerName + '\n\n' + e.map((x) => { return x.name }).join('\n'))
-                    logSplit.push(fullContainerName + ',' + e.map((x) => { return x.name }).join(','))
+                    logList.push(
+                        '----- '
+                        + fullContainerName
+                        + '\n\n'
+                        + e.map((x) => { return x.name }).join('\n')
+                    )
+
+                    logSplit.push(
+                        fullContainerNameSplit
+                        + ','
+                        + e.map((x) => { return x.name }).join(',')
+                    )
                 }
                 );
 
@@ -195,16 +209,14 @@ module.exports = {
 
                     var croppedGTM = container.containerVersion.tag.filter((ee, ii, aa) => {
 
-
-
                         var pass =
                             (
                                 ii >= e.tags[0]
                                 &&
                                 ii <= e.tags[1]
-                                /*
                                 &&
                                 ee.name != 'Script - Checkout Custom'
+                                /*
                                                                     
                                                                     &&
                                                                     excludeTags.length == 0 ? true : !(
