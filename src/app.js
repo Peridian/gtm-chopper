@@ -1,5 +1,5 @@
 module.exports = {
-    execute: (indexPath, splitLevel, searchKey, notWrite, logFormat, excludeTags) => {
+    execute: (indexPath, splitLevel, searchKey, notWrite, logFormat, excludeTags, distFileName) => {
         'use strict'
 
         var
@@ -80,6 +80,9 @@ module.exports = {
                     console.log(newFullContainer.containerVersion.trigger.length, 'triggers')
 
                     logList.push(
+                        /*
+                        console.log(
+                          */
                         '----- '
                         + fullContainerName
                         + '\n\n'
@@ -123,12 +126,13 @@ module.exports = {
             , folderFile = folderFileArray.filter((e, i, a) => {
 
                 var
-                    arr = searchKey.split(' ')
+                    arr = searchKey.split(',')
                     , passCount = 0
                     ;
 
                 arr.forEach((ee) => {
-                    if (e.indexOf(arr[i]) != -1) {
+
+                    if (e.indexOf(ee) != -1) {
                         passCount++
                     }
                 })
@@ -282,7 +286,7 @@ module.exports = {
             }
             ;
 
-        execute('CC - Importable');
+        execute(distFileName);
 
     }
 }

@@ -10,6 +10,7 @@ var
   , notWrite = ''
   , logFormat = ''
   , excludeTags = ''
+  , distFileName = ''
   ;
 
 notWrite = process.argv.indexOf('notWrite') != -1 ? false : true
@@ -23,6 +24,7 @@ process.argv.forEach(function (val, index, array) {
   if (val.indexOf('folder') != -1) indexPath = val.split('folder=').pop()
   else if (val.indexOf('key') != -1) searchKey = val.split('key=').pop()
   else if (val.indexOf('split') != -1) splitLevel = val.split('split=').pop()
+  else if (val.indexOf('name') != -1) distFileName = val.split('name=').pop()
   else if (val.indexOf('exclude') != -1)
     if (val.indexOf('exclude=') != -1) {
       excludeTags = val.split('exclude=').pop()
@@ -53,8 +55,10 @@ var pass =
     splitLevel.length != 0
     &&
     searchKey.length != 0
+    &&
+    distFileName.length != 0
   )
 
-if (!pass) throw 'Please, provide a parameter for "folder", "key" and "split"'
+if (!pass) throw 'Please, provide a parameter for "folder", "name", "key" and "split"'
 
-require('./src/app.js').execute(indexPath, splitLevel, searchKey, notWrite, logFormat, excludeTags)
+require('./src/app.js').execute(indexPath, splitLevel, searchKey, notWrite, logFormat, excludeTags, distFileName)
