@@ -4,6 +4,28 @@ module.exports = {
 
         var
             fs = require('fs')
+            , forceIncludeTags = [
+                'Script - Checkout Custom'
+            ]
+            , writeLog = (name, arr, split) => {
+                fs.writeFile(
+                    name
+                    , arr.map((e, i, a) => {
+                        return (
+                            split
+                                ? e[0] + ',' + e[1].join(',')
+                                : '------ #' + e[0] + '\n\n' + e[1].join('\n')
+                        )
+                    }).join(
+                        split ? ';' : '\n\n'
+                        )
+                    , 'utf-8'
+                    , (err) => {
+                        if (err) throw err
+                        console.log('\nLog saved')
+                    }
+                )
+            }
             , writeContainerFiles = (containerName, allGTMs, ranges, container) => {
                 containerName = containerName ? containerName : '(NOT SET)'
 
@@ -11,6 +33,14 @@ module.exports = {
                     range = ''
                     , fullContainerName = []
                     , newFullContainer = []
+                    , range = []
+                    , fullContainerName = []
+                    , fullContainerNameSplit = []
+                    , newFullContainer = []
+                    , tagsArray = []
+                    , logList = []
+                    , logSplit = []
+                    , arrayOfBlocksOfTags = []
                     ;
 
                 allGTMs.forEach((e, i, a) => {
@@ -32,84 +62,26 @@ module.exports = {
                     console.log(newFullContainer.containerVersion.tag.length, 'tags')
                     console.log(newFullContainer.containerVersion.variable.length, 'variables')
                     console.log(newFullContainer.containerVersion.trigger.length, 'triggers')
+
+                    arrayOfBlocksOfTags.push([
+                        fullContainerName,
+                        e.map((x) => { return x.name })
+                    ]);
 
                     fs.writeFile('Processed containers\\' + fullContainerName
                         , JSON.stringify(newFullContainer), (err) => {
                             if (err) throw err;
-
-                            console.log('\nFile saved')
+                            console.log('\nFile saved');
                         });
                 });
-            }
-            , writeLogs = (containerName, allGTMs, ranges, container) => {
-                containerName = containerName ? containerName : '(NOT SET)'
 
-                var
-                    range = ''
-                    , fullContainerName = []
-                    , fullContainerNameSplit = []
-                    , newFullContainer = []
-                    , logList = []
-                    , logSplit = []
-                    ;
-
-                allGTMs.forEach((e, i, a) => {
-                    fullContainerName = []
-                    fullContainerNameSplit = []
-
-                    range = ranges[i].tags[0] + '_' + ranges[i].tags[1]
-
-                    fullContainerName.push(i + 1)
-                    fullContainerName.push(containerName)
-                    fullContainerName.push(ranges[i].level)
-                    fullContainerName.push(range)
-                    fullContainerName = fullContainerName.join(' - ')
-                    fullContainerName += '.json'
-
-                    fullContainerNameSplit.push(i + 1)
-                    fullContainerNameSplit.push(ranges[i].level)
-                    fullContainerNameSplit.push(range)
-                    fullContainerNameSplit = fullContainerNameSplit.join(' - ')
-
-                    newFullContainer = JSON.parse(JSON.stringify(container))
-                    newFullContainer.containerVersion.tag = e
-
-                    console.log('\nSaving file:', fullContainerName)
-                    console.log(newFullContainer.containerVersion.tag.length, 'tags')
-                    console.log(newFullContainer.containerVersion.variable.length, 'variables')
-                    console.log(newFullContainer.containerVersion.trigger.length, 'triggers')
-
-                    logList.push(
-                        /*
-                        console.log(
-                          */
-                        '----- '
-                        + fullContainerName
-                        + '\n\n'
-                        + e.map((x) => { return x.name }).join('\n')
-                    )
-
-                    logSplit.push(
-                        fullContainerNameSplit
-                        + ','
-                        + e.map((x) => { return x.name }).join(',')
-                    )
-                }
-                );
-
-                fs.writeFileSync(
-                    'tag-name-log.txt'
-                    , logList.join('\n\n'
-                    )
-                    , 'utf-8'
-                )
-
-                fs.writeFileSync(
-                    'tag-name-log-splitable.txt'
-                    , logSplit.join(';'
-                    )
-                    , 'utf-8'
-                )
+                if (logFormat)
+                    if (logFormat == 'list') writeLog('tag-name-log.txt', arrayOfBlocksOfTags, false)
+                    else if (logFormat == 'split') writeLog('tag-name-split-log.txt', arrayOfBlocksOfTags, true)
+                    else if (logFormat == 'both') {
+                        writeLog('tag-name-log.txt', arrayOfBlocksOfTags, false)
+                        writeLog('tag-name-split-log.txt', arrayOfBlocksOfTags, true)
+                    }
             }
             ;
 
@@ -190,46 +162,38 @@ module.exports = {
 
                 return result;
             }
-            , listTagsByName = (fileName) => {
-
-                console.log('-- listTagsByName called')
-
-                console.log(
-                    JSON.parse(
-                        fs.readFileSync(
-                            paths.processed + '\\' + fileName
-                            , 'utf-8')
-                    )
-                        .containerVersion
-                        .tag
-                        .map((e) => { return e.name })
-                )
-
-            }
             , newTagsArrays = (ranges) => {
                 var containers = [];
-
                 ranges.forEach((e, i, a) => {
-
                     var croppedGTM = container.containerVersion.tag.filter((ee, ii, aa) => {
+                        var pass = []
 
-                        var pass =
+                        pass.push(
                             (
                                 ii >= e.tags[0]
                                 &&
                                 ii <= e.tags[1]
+                            ) ? true : false
+                        )
+
+                        pass.push(
+                            (
+                                forceIncludeTags.indexOf(ee.name) == -1
+                            ) ? true : false
+                        )
+
+                        pass.push(
+                            excludeTags.length == 0 ? true : !(
+                                ii >= excludeTags.split(',')[0]
                                 &&
-                                ee.name != 'Script - Checkout Custom'
-                                /*
-                                                                    
-                                                                    &&
-                                                                    excludeTags.length == 0 ? true : !(
-                                                                        ii >= excludeTags.split(',')[0]
-                                                                        &&
-                                                                        ii <= excludeTags.split(',')[1]
-                                                                    )
-                                */
-                            )
+                                ii <= excludeTags.split(',')[1]
+                            ) ? true : false
+                        )
+
+                        pass = pass.indexOf(false) == -1 ?
+                            true
+                            :
+                            false
 
                         return pass
                     });
@@ -277,10 +241,7 @@ module.exports = {
                 console.log();
             }
             , execute = (fileBaseName) => {
-                if (notWrite)
-                    writeContainerFiles(fileBaseName, newTagsArrays(ranges), ranges, container)
-
-                writeLogs(fileBaseName, newTagsArrays(ranges), ranges, container, logFormat)
+                writeContainerFiles(fileBaseName, newTagsArrays(ranges), ranges, container)
 
                 finalize('----- That\'s all, folks! -----')
             }

@@ -11,6 +11,13 @@ var
   , logFormat = ''
   , excludeTags = ''
   , distFileName = ''
+  , logFormat = ''
+  , logHash =
+    {
+      '-l': 'list'
+      , '-s': 'split'
+      , '-ls': 'both'
+    }
   ;
 
 notWrite = process.argv.indexOf('notWrite') != -1 ? false : true
@@ -25,6 +32,13 @@ process.argv.forEach(function (val, index, array) {
   else if (val.indexOf('key') != -1) searchKey = val.split('key=').pop()
   else if (val.indexOf('split') != -1) splitLevel = val.split('split=').pop()
   else if (val.indexOf('name') != -1) distFileName = val.split('name=').pop()
+  else if (
+    val == '-l'
+    ||
+    val == '-s'
+    ||
+    val == '-ls'
+  ) logFormat = logHash[val]
   else if (val.indexOf('exclude') != -1)
     if (val.indexOf('exclude=') != -1) {
       excludeTags = val.split('exclude=').pop()
