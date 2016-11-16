@@ -4,13 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "forever": "forever -w -d -m 1 index.js"
+    "forever": "forever -w -d -m 1 index.js",
+    "gulp": ""
   },
   "author": "",
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
     "forever": "^0.15.2",
-    "nodemon": "^1.10.2"
+    "gulp-file": "^0.3.0",
+    "gulp-webpack": "^1.5.0",
+    "nodemon": "^1.10.2",
+    "webpack": "^1.13.3"
   }
 }

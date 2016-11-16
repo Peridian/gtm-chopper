@@ -72,7 +72,27 @@ var pass =
     &&
     distFileName.length != 0
   )
+  , requiredParameters =
+    [
+      , '"folder="'
+      , '"name="'
+      , '"key="'
+      , '"split="'
+    ]
+  , optionalParameters =
+    [
+      , '"-l": saves a list with all tag names in each container in a file"'
+      , '"-s": saves a file with all tag names in each container that can be split into spreadsheet softwares"'
+      , '"-ls": save a list of all tags and a separate file to split in spreadsheet softwares'
+      , '"notWrite"'
+    ]
+  ;
 
-if (!pass) throw 'Please, provide a parameter for "folder", "name", "key" and "split"'
+if (!pass) {
+  var error = 'Please, provide a values for the following required parameters:' + requiredParameters.join('\n- ') + '\n\nOther optional parameters include:' + optionalParameters.join('\n- ')
 
-require('./src/app.js').execute(indexPath, splitLevel, searchKey, notWrite, logFormat, excludeTags, distFileName)
+  throw error
+}
+
+  require('./src/script/app.js')
+  .execute(indexPath, splitLevel, searchKey, notWrite, logFormat, excludeTags, distFileName)
