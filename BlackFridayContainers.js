@@ -3,97 +3,112 @@
 console.log()
 
 var
-    pass = false
+    fs = require('fs')
+    , tagPlan = require('./JSONfy-spreadsheet.js').JSONfySpreadsheet()
     , CLIParams = [
         '- srcPlan'
         , '- srcCont'
         , '- distCont'
     ]
-    , fs = require('fs')
+    , pass = false
     ;
+
+if (process.argv[2] == 'undefined' || process.argv[2] == undefined) throw 'Plan file name not provided.'
+if (process.argv[3] == 'undefined' || process.argv[3] == undefined) throw 'Container file name not provided.'
 
 var
-    planFileName = process.argv[2]
-    , srcFileName = process.argv[3]
-    , distFileName = process.argv[4]
+    paths = {
+        plan: process.argv[2]
+        , src: process.argv[3]
+    }
     ;
+
+paths.dist = paths.src.split('/')[2].split('-')[0].trim()
+paths.dist = './BF/' + paths.dist + '/' + paths.dist
 
 var
-    tagPlan = JSON.parse(fs.readFileSync(planFileName))
-    , container = JSON.parse(fs.readFileSync(srcFileName))
-    ;
+    container = JSON.parse(fs.readFileSync(paths.src))
+    , noMidiaContainer = container
 
-tagPlan.forEach((e, i, a) => {
-    console.log(
-        [
-            '(name, currentState, decision)'
-            , e.name
-            , e.currentState
-            , e.jussiDecision
-        ]
-            .join(' | ')
-    )
-});
+var tags = container.containerVersion.tag
 
-/* 
-
-var writeContainerFiles = (containerName, container) => {
-    containerName = containerName ? containerName : '(NOT SET)'
-
-    var
-        range = ''
-        , fullContainerName = []
-        , newFullContainer = []
-        , range = []
-        , fullContainerName = []
-        , fullContainerNameSplit = []
-        , newFullContainer = []
-        , tagsArray = []
-        , logList = []
-        , logSplit = []
-        , arrayOfBlocksOfTags = []
-        ;
-
-    allGTMs.forEach((e, i, a) => {
-        fullContainerName = []
-
-        range = ranges[i].tags[0] + '_' + ranges[i].tags[1]
-
-        fullContainerName.push(i + 1)
-        fullContainerName.push(containerName)
-        fullContainerName.push(ranges[i].level)
-        fullContainerName.push(range)
-        fullContainerName = fullContainerName.join(' - ')
-        fullContainerName += '.json'
-
-        newFullContainer = JSON.parse(JSON.stringify(container))
-        newFullContainer.containerVersion.tag = e
-
-        console.log('\nSaving file:', fullContainerName)
-        console.log(newFullContainer.containerVersion.tag.length, 'tags')
-        console.log(newFullContainer.containerVersion.variable.length, 'variables')
-        console.log(newFullContainer.containerVersion.trigger.length, 'triggers')
-
-        arrayOfBlocksOfTags.push([
-            fullContainerName,
-            e.map((x) => { return x.name })
-        ]);
-
-        fs.writeFile('Processed containers\\' + fullContainerName
-            , JSON.stringify(newFullContainer), (err) => {
-                if (err) throw err;
-                console.log('\nFile saved');
-            });
+noMidiaContainer.containerVersion.tag =
+    tags.filter((e, i, a) => {
+        return e.name.toLowerCase().indexOf('media') > -1
     });
 
-    if (logFormat)
-        if (logFormat == 'list') writeLog('tag-name-log.txt', arrayOfBlocksOfTags, false)
-        else if (logFormat == 'split') writeLog('tag-name-split-log.txt', arrayOfBlocksOfTags, true)
-        else if (logFormat == 'both') {
-            writeLog('tag-name-log.txt', arrayOfBlocksOfTags, false)
-            writeLog('tag-name-split-log.txt', arrayOfBlocksOfTags, true)
-        }
-}
-    ;
+console.log('SEM MIDIA - Total de tags')
+console.log(noMidiaContainer.containerVersion.tag.length)
 
-*/
+fs.writeFile(
+    paths.dist + " - SEM MIDIA - LOG.txt"
+    , (() => {
+        return noMidiaContainer.containerVersion.tag.map((e, i, a) => {
+            return e.name
+        }).join('\n');
+    })()
+    , 'utf-8'
+    , (err, data) => {
+        if (err) throw err;
+        console.log('\nSEM MIDIA - Log criado');
+    });
+
+noMidiaContainer =
+    JSON.stringify(
+        noMidiaContainer
+    )
+
+fs.writeFile(
+    paths.dist + " - SEM MIDIA.json"
+    , noMidiaContainer
+    , 'utf-8'
+    , (err, data) => {
+        if (err) throw err;
+        console.log('\nSEM MIDIA - Container criado');
+    });
+
+tags = tags.filter((e, i, a) => {
+    var planItem =
+        tagPlan.filter((ee, ii, aa) => {
+            var pass = e.name == ee.Tag && ee.FINAL == 'Ativar'
+
+            return pass
+        })
+
+    return planItem.length == 1
+});
+
+container.containerVersion.tag = tags
+
+fs.writeFile(
+    paths.dist + " - VALIDADO - LOG.txt"
+    , (() => {
+        return tags.map((e, i, a) => {
+            return e.name
+        }).join('\n');
+    })()
+    , 'utf-8'
+    , (err, data) => {
+        if (err) throw err;
+        console.log('\nVALIDADO - Log criado');
+    });
+
+container = JSON.stringify(container)
+
+fs.writeFile(
+    paths.dist + " - VALIDADO.json"
+    , container
+    , 'utf-8'
+    , (err, data) => {
+        if (err) throw err;
+        console.log('\nVALIDADO - Container criado');
+    });
+
+console.log()
+
+console.log('VALIDADO - Total de tags')
+console.log(
+    tags.filter((e, i, a) => {
+        return e.FINAL != 'Ativar'
+    }).length
+)

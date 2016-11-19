@@ -1,44 +1,46 @@
 'use strict'
 
-var
-    fs = require('fs')
-    , srcFileName = process.argv[2]
-    , distFileName = process.argv[3]
-    ;
+var JSONfySpreadsheet = () => {
 
-if (srcFileName.length == 0) throw 'Source file name not detected.'
+    var
+        fs = require('fs')
+        , srcFileName = process.argv[2]
+        , distFileName = process.argv[3]
+        ;
 
-if (distFileName.length == 0) throw 'Distribution file name not detected.'
+    if (srcFileName == 'undefined' || srcFileName == undefined) throw 'Plan spreadsheet file path not detected.'
 
-var spreadsheet = fs
-    .readFileSync(srcFileName)
-    .toString()
-    .split('\r\n')
-    ;
+    //Used for plan json file creation
+    //    if (distFileName == 'undefined' || distFileName == undefined) throw 'Distribution file name not detected.'
 
-spreadsheet.shift();
+    var
+        spreadsheet = fs
+            .readFileSync(srcFileName)
+            .toString()
+            .split('\r\n')
+        ;
 
-spreadsheet = spreadsheet
-    .map((e, i, a) => {
-        var item = e.split('\t');
+    var header = spreadsheet.shift().split('\t');
 
-        return {
-            type: item[0]
-            , name: item[1]
-            , description: item[2]
-            , currentState: item[3]
-            , BFRecomendation: item[4]
-            , risk: item[5]
-            , jussiDecision: item[6]
-            , observation: item[7]
-            , resposible: item[8]
-        }
+    return spreadsheet = spreadsheet.map((e, i, a) => {
+        var obj = {}
+
+        e.split('\t').forEach((e, i, a) => { obj[header[i]] = e; })
+
+        return obj;
+    });
+
+    /*
+    Used for plan json file creation
+    
+    spreadsheet = JSON.stringify(spreadsheet);
+    
+    fs.writeFile('./' + distFileName + ".json", spreadsheet, 'utf-8', (err, data) => {
+        if (err) throw err;
+        console.log('\nFile written');
     })
-    ;
+    
+    */
+};
 
-spreadsheet = JSON.stringify(spreadsheet);
-
-fs.writeFile('./' + distFileName, spreadsheet, 'utf-8', (err, data) => {
-    if (err) throw err;
-    console.log('File written');
-})
+module.exports = { JSONfySpreadsheet: JSONfySpreadsheet };

@@ -255,6 +255,8 @@
         return app;
     })();
 
-    if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') module.exports = app;
-    else window.app = app;
+    if (typeof module !== 'undefined' && typeof module.exports !== 'undefined')
+        module.exports = app;
+    else
+        window.app = app;
 })();
