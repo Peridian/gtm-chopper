@@ -1,21 +1,14 @@
 'use strict'
 
-var JSONfySpreadsheet = () => {
+var JSONfySpreadsheet = (planFileName) => {
 
     var
         fs = require('fs')
-        , srcFileName = process.argv[2]
-        , distFileName = process.argv[3]
         ;
-
-    if (srcFileName == 'undefined' || srcFileName == undefined) throw 'Plan spreadsheet file path not detected.'
-
-    //Used for plan json file creation
-    //    if (distFileName == 'undefined' || distFileName == undefined) throw 'Distribution file name not detected.'
 
     var
         spreadsheet = fs
-            .readFileSync(srcFileName)
+            .readFileSync(planFileName)
             .toString()
             .split('\r\n')
         ;
@@ -29,18 +22,6 @@ var JSONfySpreadsheet = () => {
 
         return obj;
     });
-
-    /*
-    Used for plan json file creation
-    
-    spreadsheet = JSON.stringify(spreadsheet);
-    
-    fs.writeFile('./' + distFileName + ".json", spreadsheet, 'utf-8', (err, data) => {
-        if (err) throw err;
-        console.log('\nFile written');
-    })
-    
-    */
 };
 
 module.exports = { JSONfySpreadsheet: JSONfySpreadsheet };

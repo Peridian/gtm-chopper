@@ -2,113 +2,248 @@
 
 console.log()
 
-var
-    fs = require('fs')
-    , tagPlan = require('./JSONfy-spreadsheet.js').JSONfySpreadsheet()
-    , CLIParams = [
-        '- srcPlan'
-        , '- srcCont'
-        , '- distCont'
-    ]
-    , pass = false
-    ;
+var CreateContainers = (websiteName) => {
+    var
+        paths = {
+            plan: './csvs/' + websiteName + '.tsv'
+            , src: websiteName
+        }
+        ;
 
-if (process.argv[2] == 'undefined' || process.argv[2] == undefined) throw 'Plan file name not provided.'
-if (process.argv[3] == 'undefined' || process.argv[3] == undefined) throw 'Container file name not provided.'
+    paths.dist = paths.src.split('-')[0].trim()
+    paths.dist = './BF/' + paths.dist + '/' + paths.dist
 
-var
-    paths = {
-        plan: process.argv[2]
-        , src: process.argv[3]
-    }
-    ;
+    var
+        fs = require('fs')
+        , tagPlan = require('./JSONfy-spreadsheet.js').JSONfySpreadsheet(paths.plan)
+        ;
 
-paths.dist = paths.src.split('/')[2].split('-')[0].trim()
-paths.dist = './BF/' + paths.dist + '/' + paths.dist
+    paths.src = './Original containers/';
 
-var
-    container = JSON.parse(fs.readFileSync(paths.src))
-    , noMidiaContainer = container
+    paths.src += fs
+        .readdirSync(paths.src)
+        .filter((e, i, a) => {
+            return e
+                .split('-')[0]
+                .trim() == websiteName
+        })[0]
 
-var tags = container.containerVersion.tag
+    var
+        container = JSON.parse(fs.readFileSync(paths.src))
+        , noMidiaContainer = JSON.parse(JSON.stringify(container))
+        , tags = container.containerVersion.tag
+        ;
 
-noMidiaContainer.containerVersion.tag =
-    tags.filter((e, i, a) => {
-        return e.name.toLowerCase().indexOf('media') > -1
-    });
+    if (tags.length != tagPlan.length) {
 
-console.log('SEM MIDIA - Total de tags')
-console.log(noMidiaContainer.containerVersion.tag.length)
 
-fs.writeFile(
-    paths.dist + " - SEM MIDIA - LOG.txt"
-    , (() => {
-        return noMidiaContainer.containerVersion.tag.map((e, i, a) => {
-            return e.name
-        }).join('\n');
-    })()
-    , 'utf-8'
-    , (err, data) => {
-        if (err) throw err;
-        console.log('\nSEM MIDIA - Log criado');
-    });
+        console.log('\n\n---- ERROR -----')
+        console.log('Difference in total of tags between detected.')
+        console.log('Container:', tags.length)
+        console.log('Spreadsheet:', tagPlan.length)
 
-noMidiaContainer =
-    JSON.stringify(
-        noMidiaContainer
-    )
+        var
+            origin = ''
+            , biggerContainer = []
+            , smallerContainer = []
 
-fs.writeFile(
-    paths.dist + " - SEM MIDIA.json"
-    , noMidiaContainer
-    , 'utf-8'
-    , (err, data) => {
-        if (err) throw err;
-        console.log('\nSEM MIDIA - Container criado');
-    });
+        if (tags.length > tagPlan.length) {
+            origin = 'container'
+            biggerContainer = JSON.parse(JSON.stringify(tags))
+            smallerContainer = JSON.parse(JSON.stringify(tagPlan))
+        } else {
+            origin = 'spreadsheet'
+            biggerContainer = JSON.parse(JSON.stringify(tagPlan))
+            smallerContainer = JSON.parse(JSON.stringify(tags))
+        }
 
-tags = tags.filter((e, i, a) => {
-    var planItem =
-        tagPlan.filter((ee, ii, aa) => {
-            var pass = e.name == ee.Tag && ee.FINAL == 'Ativar'
+        biggerContainer.forEach((e, i, a) => {
+            var pass = false;
 
-            return pass
+            smallerContainer.forEach((ee, ii, aa) => {
+                if (e.name == ee.Tag) pass = true;
+            });
+
+            if (!pass) console.log('|', e.name, '| present on ', origin)
+
         })
 
-    return planItem.length == 1
-});
+        console.log('---- ERROR -----\n')
 
-container.containerVersion.tag = tags
 
-fs.writeFile(
-    paths.dist + " - VALIDADO - LOG.txt"
-    , (() => {
-        return tags.map((e, i, a) => {
+    }
+
+    tags = tags.filter((e, i, a) => {
+        var planItem =
+            tagPlan.filter((ee, ii, aa) => {
+
+                var pass1 = (
+                    e.name == ee.Tag
+                    &&
+                    ee.FINAL == 'Ativar'
+                )
+
+                return pass1;
+            })
+
+        return planItem.length > 0
+    });
+
+    noMidiaContainer.containerVersion.tag =
+        tags.filter((e, i, a) => {
+
+            var planItem =
+                tagPlan.filter((ee, ii, aa) => {
+
+                    var pass1 = (
+                        e.name == ee.Tag
+                        &&
+                        ee.FINAL == 'Ativar'
+                        &&
+                        e
+                            .name
+                            .toLowerCase()
+                            .indexOf('media') == -1
+                    )
+
+                    return pass1;
+                })
+
+            return planItem.length > 0
+        });
+
+    var contTags = container.containerVersion.tag.map((e, i, a) => {
+        return e.name
+    })
+
+    contTags =
+        contTags.length
+        + ' tags\n\n'
+        + contTags.join('\n')
+
+    fs.writeFileSync(
+        paths.dist + " - COMPLETO - LOG.txt"
+        , contTags
+        , 'utf-8'
+    );
+
+    console.log(
+        websiteName
+        , 'COMPLETO - Total de tags'
+        , container.containerVersion.tag.length
+    );
+
+    console.log(
+        websiteName
+        , 'COMPLETO - Log criado');
+
+    console.log('---')
+
+    /////////////// #MIDIA ///////////////
+
+    console.log(
+        websiteName
+        , 'SEM MIDIA - Total de tags',
+        noMidiaContainer.containerVersion.tag.length
+    )
+
+    fs.writeFileSync(
+        paths.dist
+        + " - SEM MIDIA - LOG.txt"
+        , noMidiaContainer.containerVersion.tag.length
+        + ' tags\n\n'
+        + noMidiaContainer.containerVersion.tag.map((e, i, a) => {
             return e.name
-        }).join('\n');
-    })()
-    , 'utf-8'
-    , (err, data) => {
-        if (err) throw err;
-        console.log('\nVALIDADO - Log criado');
+        }).join('\n')
+        , 'utf-8'
+    );
+
+    console.log(
+        websiteName
+        , 'SEM MIDIA - Log criado');
+
+    noMidiaContainer =
+        JSON.stringify(
+            noMidiaContainer
+        )
+
+    fs.writeFileSync(
+        paths.dist + " - SEM MIDIA.json"
+        , noMidiaContainer
+        , 'utf-8'
+    );
+
+    console.log(
+        websiteName
+        , 'SEM MIDIA - Container criado');
+
+    tags = tags.filter((e, i, a) => {
+        var planItem =
+            tagPlan.filter((ee, ii, aa) => {
+
+                var pass1 = (
+                    e.name == ee.Tag
+                    &&
+                    ee.FINAL == 'Ativar'
+                )
+
+                return pass1;
+            })
+
+        return planItem.length > 0
     });
 
-container = JSON.stringify(container)
+    container.containerVersion.tag = tags
 
-fs.writeFile(
-    paths.dist + " - VALIDADO.json"
-    , container
-    , 'utf-8'
-    , (err, data) => {
-        if (err) throw err;
-        console.log('\nVALIDADO - Container criado');
-    });
+    /////////////// #VALIDADO ///////////////
 
-console.log()
+    console.log('---')
 
-console.log('VALIDADO - Total de tags')
-console.log(
-    tags.filter((e, i, a) => {
-        return e.FINAL != 'Ativar'
-    }).length
-)
+    var str = tags.map((e, i, a) => {
+        return e.name
+    })
+
+    str =
+        str.length
+        + ' tags\n\n'
+        + str.join('\n')
+
+    fs.writeFileSync(
+        paths.dist + " - VALIDADO - LOG.txt"
+        , str
+        , 'utf-8'
+    );
+
+    console.log(
+        websiteName
+        , 'VALIDADO - Log criado'
+    );
+
+    container = JSON.stringify(container)
+
+    fs.writeFileSync(
+        paths.dist + " - VALIDADO.json"
+        , container
+        , 'utf-8'
+    );
+
+    console.log(
+        websiteName
+        , 'VALIDADO - Container criado'
+    );
+
+    console.log(
+        websiteName
+        , 'VALIDADO - Total de tags',
+        tags.filter((e, i, a) => {
+            return e.FINAL != 'Ativar'
+        }).length
+    )
+}
+
+//////////////////////////////
+
+['CC', 'BTP', 'CNS'].forEach((e) => {
+    console.log(['\n----------', e, '----------\n'].join(' '))
+    CreateContainers(e)
+});
