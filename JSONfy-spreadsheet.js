@@ -1,10 +1,6 @@
 'use strict'
 
-var JSONfySpreadsheet = (planFileName) => {
-
-    var
-        fs = require('fs')
-        ;
+var JSONfySpreadsheet = (planFileName, fs) => {
 
     var
         spreadsheet = fs

@@ -15,8 +15,24 @@ var CreateContainers = (websiteName) => {
 
     var
         fs = require('fs')
-        , tagPlan = require('./JSONfy-spreadsheet.js').JSONfySpreadsheet(paths.plan)
-        ;
+        , tagPlan = (() => {
+            var
+                spreadsheet = fs
+                    .readFileSync(paths.plan)
+                    .toString()
+                    .split('\r\n')
+                ;
+
+            var header = spreadsheet.shift().split('\t');
+
+            return spreadsheet = spreadsheet.map((e, i, a) => {
+                var obj = {}
+
+                e.split('\t').forEach((e, i, a) => { obj[header[i]] = e; })
+
+                return obj;
+            });
+        })()
 
     paths.src = './Original containers/';
 
@@ -36,7 +52,6 @@ var CreateContainers = (websiteName) => {
 
     if (tags.length != tagPlan.length) {
 
-
         console.log('\n\n---- ERROR -----')
         console.log('Difference in total of tags between detected.')
         console.log('Container:', tags.length)
@@ -46,6 +61,7 @@ var CreateContainers = (websiteName) => {
             origin = ''
             , biggerContainer = []
             , smallerContainer = []
+            ;
 
         if (tags.length > tagPlan.length) {
             origin = 'container'
@@ -69,7 +85,6 @@ var CreateContainers = (websiteName) => {
         })
 
         console.log('---- ERROR -----\n')
-
 
     }
 
@@ -175,7 +190,8 @@ var CreateContainers = (websiteName) => {
 
     console.log(
         websiteName
-        , 'SEM MIDIA - Container criado');
+        , 'SEM MIDIA - Container criado'
+    );
 
     tags = tags.filter((e, i, a) => {
         var planItem =
