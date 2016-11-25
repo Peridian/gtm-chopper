@@ -44,6 +44,16 @@ var CreateContainers = (websiteName) => {
                 .trim() == websiteName
         })[0]
 
+    console.log(
+        '---- Using file:'
+        , paths
+            .src
+            .split('/')
+            .pop()
+    )
+    console.log()
+
+
     var
         container = JSON.parse(fs.readFileSync(paths.src))
         , noMidiaContainer = JSON.parse(JSON.stringify(container))
@@ -255,6 +265,7 @@ var CreateContainers = (websiteName) => {
             return e.FINAL != 'Ativar'
         }).length
     )
+
 }
 
 //////////////////////////////
@@ -262,4 +273,4 @@ var CreateContainers = (websiteName) => {
 ['CC', 'BTP', 'CNS'].forEach((e) => {
     console.log(['\n----------', e, '----------\n'].join(' '))
     CreateContainers(e)
-});
+}); 
